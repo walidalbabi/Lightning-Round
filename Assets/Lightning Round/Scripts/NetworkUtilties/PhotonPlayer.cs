@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Photon.Pun;
 using TMPro;
 
@@ -9,19 +10,25 @@ public class PhotonPlayer : MonoBehaviour
     //Inspector Assign
     [SerializeField] private TextMeshProUGUI _playerName; 
     [SerializeField] private TextMeshProUGUI _playerScore;
+    [SerializeField] private Image _playerAvatarImg;
 
     //PR
     private float _score;
     private PhotonView _pv;
     private bool _isAnswering;
-    public bool _isReadyForNextQuesiton;
+    private bool _isReadyForNextQuesiton;
+    public bool _isLeft;
     //PB
+    public string playerName;
+    public Sprite playerImage;
     public int answeredQuestionIndex;
 
 
     //Properties
+    public float score { get { return _score; } }
     public bool isAnswering { get { return _isAnswering; } }
     public bool isReadyForNextQuesiton { get { return _isReadyForNextQuesiton; } }
+    public bool isLeft { get { return _isLeft; } }
 
     private void Awake()
     {
@@ -37,6 +44,10 @@ public class PhotonPlayer : MonoBehaviour
         }
 
         _playerName.text = _pv.Owner.NickName;
+        playerName = _pv.Owner.NickName;
+        playerImage = null;
+        _playerAvatarImg.sprite = playerImage;
+
         transform.SetParent(GameManager.instance.playersTableTransform);
         GameManager.instance.AddPhotonPlayerToList(this);
         SetIsAnswering(false);
@@ -46,7 +57,9 @@ public class PhotonPlayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(_pv.IsMine)
+        if (_isLeft) return;
+
+        if (_pv.IsMine)
             if (!_isAnswering)
                 CheckIfCanAnswer();
     }
@@ -123,4 +136,10 @@ public class PhotonPlayer : MonoBehaviour
         SetIsReadyToAnswer(true);
         answeredQuestionIndex = 0;
     }
+
+    public void SetISPlayerLeft()
+    {
+        _isLeft = true;
+    }
+
 }

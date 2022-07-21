@@ -25,8 +25,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     private float _currentMaxTime;
     private double _serverStartTime;
     private bool _isChoosingQuestion;
-    public PhotonPlayer _currentPhotonPlayer;
+    private PhotonPlayer _currentPhotonPlayer;
     private int _currentRoundIndex = 1;
+    private bool _canSetNextRound = true;
     
     private List<PhotonPlayer> _allPhotonPlayersList = new List<PhotonPlayer>();
 
@@ -219,19 +220,39 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void CheckIFCurrentRoundIsFinished()
     {
+        if (!_canSetNextRound)
+        {
+            return;
+        }
+
         if(AnswerQuestionManager.instance.currentAnswerIndex == 5)
         {
             if(_currentRoundIndex == 2)
             {
                 //All Round Are Finished
-                _inGameUiManager.ShowScorePanel();
 
-            }else if (_currentRoundIndex == 1)
+                //To Stop Players Activities
+                _currentPhotonPlayer.SetIsAnswering(true);
+                _currentPhotonPlayer.SetIsReadyToAnswer(false);
+                //
+                 Invoke("SetScoreBoardPlayers", 0.5f);
+                _canSetNextRound = false;
+
+
+            }
+            else if (_currentRoundIndex == 1)
             {
                 //Start Round 2
-                StartNextRound();
+                Invoke("StartNextRound", 0.5f);
+                _canSetNextRound = false;
             }
         }
+    }
+
+    private void SetScoreBoardPlayers()
+    {
+        _inGameUiManager.ShowScorePanel();
+        _canSetNextRound = true;
     }
 
     private void StartNextRound()
@@ -241,6 +262,20 @@ public class GameManager : MonoBehaviourPunCallbacks
         _inGameUiManager.questionNumberPanel.StartNewRound();
         _currentPhotonPlayer.StartNewRoundPlayer();
         SetUpQuestionsTable();
+        _canSetNextRound = true;
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        base.OnPlayerLeftRoom(otherPlayer);
+
+        foreach (var player in _allPhotonPlayersList)
+        {
+            if (player.GetComponent<PhotonView>().CreatorActorNr == otherPlayer.ActorNumber)
+            {
+                player.SetISPlayerLeft();
+            }
+        }
     }
 
 }

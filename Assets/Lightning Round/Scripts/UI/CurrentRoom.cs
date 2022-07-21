@@ -12,12 +12,14 @@ public class CurrentRoom : MonoBehaviourPunCallbacks
     [SerializeField] private Transform _currentPlayersTable;
     [SerializeField] private PlayerListing _playerListing;
     [SerializeField] private TextMeshProUGUI _playerNumbText;
+    [SerializeField] private TextMeshProUGUI _roomKey;
 
     private List<PlayerListing> _listings = new List<PlayerListing>();
 
     public override void OnEnable()
     {
         GetCurrentRoomPlayer();
+        _roomKey.text = "Key : " + PhotonNetwork.CurrentRoom.Name;
     }
 
     public override void OnDisable()

@@ -108,6 +108,12 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
 
 
     }
+
+    public override void OnLeftRoom()
+    {
+        base.OnLeftRoom();
+        PhotonNetwork.ConnectUsingSettings();
+    }
     #endregion CallBacks
 
 
@@ -148,6 +154,7 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         RoomOptions roomOptions = new RoomOptions();
         roomOptions.IsVisible = true;
         roomOptions.MaxPlayers = _maxPlayersInRoom;
+        roomOptions.CleanupCacheOnLeave = false;
         Photon.Pun.PhotonNetwork.JoinOrCreateRoom(Photon.Pun.PhotonNetwork.NickName+Random.Range(0,999), roomOptions , TypedLobby.Default);
     }
 
@@ -166,6 +173,17 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
     public void JoinRoomByID(string ID)
     {
         Photon.Pun.PhotonNetwork.JoinRoom(ID);
+    }
+
+    public void ExitMatchMaking()
+    {
+        _randomCountForTryingToFindARoom = 0;
+        if (_searchForRoomCoroutine != null) StopCoroutine(_searchForRoomCoroutine);
+    }
+
+    public void ExitCurrentRoom()
+    {
+        PhotonNetwork.LeaveRoom();
     }
 
     //private void CreateOfflineRoom()

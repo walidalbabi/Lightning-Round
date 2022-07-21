@@ -11,6 +11,9 @@ public class PlayerListing : MonoBehaviour
 {
     //Inspector Assign
     [SerializeField] TextMeshProUGUI _playerName;
+    [SerializeField] Image _avatarImage;
+
+    private Sprite _playerImg;
 
     //PB
     public Player Player { get; private set; }
@@ -19,6 +22,6 @@ public class PlayerListing : MonoBehaviour
     {
         Player = player;
         _playerName.text = player.NickName;
-
+        _avatarImage.sprite = _playerImg;
     }
 }

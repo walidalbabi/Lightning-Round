@@ -11,6 +11,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private TMP_InputField _roomIDField;
 
 
+
     //Private
     private GameObject _currentSelectedPanel;
 
@@ -66,6 +67,18 @@ public class MenuManager : MonoBehaviour
     private void OpenCurrentSelectedPanel()
     {
         _currentSelectedPanel.SetActive(true);
+    }
+
+    public void ExitMatchMaking()
+    {
+        ClosePrevioucePanel();
+        PhotonNetworkScript.instance.ExitMatchMaking();
+    }
+
+    public void ExitCurrentRoom()
+    {
+        ClosePrevioucePanel();
+        PhotonNetworkScript.instance.ExitCurrentRoom();
     }
 
     private GameObject FindPanelInPanelList(string name)
