@@ -76,6 +76,8 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
             Photon.Pun.PhotonNetwork.LoadLevel(1);
         }
 
+        StopAllCoroutines();
+
         Debug.Log("IN Room");
 
         _menuManager.ShowPanelByItsName("Room Panel");

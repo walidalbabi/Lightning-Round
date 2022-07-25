@@ -7,17 +7,15 @@ using TMPro;
 
 public class PhotonPlayer : MonoBehaviour
 {
-    //Inspector Assign
-    [SerializeField] private TextMeshProUGUI _playerName; 
-    [SerializeField] private TextMeshProUGUI _playerScore;
-    [SerializeField] private Image _playerAvatarImg;
+    [SerializeField] GameObject _avatarPrefab;
 
     //PR
     private float _score;
     private PhotonView _pv;
     private bool _isAnswering;
     private bool _isReadyForNextQuesiton;
-    public bool _isLeft;
+    private bool _isLeft;
+    private PlayerAvatarInfo _playerAvatarInfo;
     //PB
     public string playerName;
     public Sprite playerImage;
@@ -41,23 +39,33 @@ public class PhotonPlayer : MonoBehaviour
         if (_pv.IsMine)
         {
             GameManager.instance.AddPhotonPlayerComponent(this);
+            _pv.RPC("RPC_SetPlayerAvatar", RpcTarget.AllBuffered);
         }
 
-        _playerName.text = _pv.Owner.NickName;
-        playerName = _pv.Owner.NickName;
-        playerImage = null;
-        _playerAvatarImg.sprite = playerImage;
-
-        transform.SetParent(GameManager.instance.playersTableTransform);
         GameManager.instance.AddPhotonPlayerToList(this);
         SetIsAnswering(false);
         SetIsReadyToAnswer(true);
     }
 
+    [PunRPC]
+    private void RPC_SetPlayerAvatar()
+    {
+        var obj = Instantiate(_avatarPrefab, GameManager.instance.playersTableTransform);
+        _playerAvatarInfo = obj.GetComponent<PlayerAvatarInfo>();
+        SetPlayerInfo();
+    }
+
+    private void SetPlayerInfo()
+    {
+        playerName = _pv.Owner.NickName;
+        playerImage = null;
+        _playerAvatarInfo.SetPlayerNameAndImage(playerName, playerImage);
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if (_isLeft) return;
+        if (_isLeft || GameManager.instance.currentGameState != GameState.Playing) return;
 
         if (_pv.IsMine)
             if (!_isAnswering)
@@ -120,7 +128,7 @@ public class PhotonPlayer : MonoBehaviour
     private void RPC_IncreasePlayerScoreByAmount(float amount)
     {
         _score += amount;
-        _playerScore.text = _score.ToString() + " pts";
+        if (_playerAvatarInfo != null) _playerAvatarInfo.UpdatePlayerScore((int)_score);
     }
 
 

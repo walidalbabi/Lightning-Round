@@ -49,6 +49,8 @@ MonoBehaviour:
   - RPC_ClearPlayerAnsweredQuestions
   - RPC_IncreasePlayerAnsweredQuestions
   - RPC_StartNewRoundPlayer
+  - SetPlayerInfo
+  - RPC_SetPlayerAvatar
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

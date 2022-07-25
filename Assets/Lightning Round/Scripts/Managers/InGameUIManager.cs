@@ -7,6 +7,7 @@ using System;
 public class InGameUIManager : MonoBehaviour
 {
     [SerializeField] private QuestionNumberPanel _questionNumberPanel;
+    [SerializeField] private GameObject _loadingPanel;
     [SerializeField] private GameObject _QuestionMenuPanel;
     [SerializeField] private GameObject _AnswerMenuPanel;
     [SerializeField] private GameObject _scorePanel;
@@ -37,6 +38,12 @@ public class InGameUIManager : MonoBehaviour
         _QuestionMenuPanel.SetActive(false);
 
         SetAnswerPanelData();
+    }
+
+    public void DisableLoadingPanel()
+    {
+        _loadingPanel.SetActive(false);
+        _QuestionMenuPanel.SetActive(true);
     }
 
     public void ShowScorePanel()

@@ -5,6 +5,14 @@ using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 
+
+
+public enum GameState
+{
+    Loading,
+    Playing,
+    GameFinish
+}
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public static GameManager instance;
@@ -32,6 +40,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     private List<PhotonPlayer> _allPhotonPlayersList = new List<PhotonPlayer>();
 
     //PB
+    public GameState currentGameState;
     public List<Question> _questionsList_1_Round_1 = new List<Question>();
     public List<Question> _questionsList_2_Round_1 = new List<Question>();
     public List<Question> _questionsList_3_Round_1 = new List<Question>();
@@ -55,6 +64,21 @@ public class GameManager : MonoBehaviourPunCallbacks
     public List<PhotonPlayer> allPhotonPlayersList { get { return _allPhotonPlayersList; } }
 
 
+    public void SetGameState(GameState state)
+    {
+        currentGameState = state;
+        OnEnterState();
+    }
+
+    private void OnEnterState()
+    {
+        if (currentGameState == GameState.Playing)
+        {
+            _inGameUiManager.DisableLoadingPanel();
+            SetUpQuestionsTable();
+        }
+    }
+
     void Awake()
     {
         if (instance == null) instance = this;
@@ -64,8 +88,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     private void Start()
     {
         GameObject playerAvatar = PhotonNetwork.Instantiate("PhotonPlayer", _playersTableTransform.transform.position, Quaternion.identity);
-
-        SetUpQuestionsTable();
         _isChoosingQuestion = true;
 
     }
@@ -73,6 +95,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     // Update is called once per frame
     void Update()
     {
+        if (currentGameState != GameState.Playing) return;
         TimeFormat();
         UpdateTime();
         CheckForTime();
@@ -216,6 +239,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public void AddPhotonPlayerToList(PhotonPlayer component)
     {
         _allPhotonPlayersList.Add(component);
+        if (_allPhotonPlayersList.Count == PhotonNetwork.CurrentRoom.PlayerCount) SetGameState(GameState.Playing);
     }
 
     public void CheckIFCurrentRoundIsFinished()
