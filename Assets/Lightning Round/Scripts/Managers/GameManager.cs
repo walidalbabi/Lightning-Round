@@ -56,6 +56,9 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     //Properties
     public Transform playersTableTransform { get { return _playersTableTransform; } }
+    public float timer { get { return _timer; } }
+    public float currentMaxTime { get { return _currentMaxTime; } }
+    public double serverStartTime { get { return _serverStartTime; } }
     public Question currentSelectedQuestion { get { return _currentSelectedQuestion; } }
     public PhotonPlayer currentPhotonPlayer { get { return _currentPhotonPlayer; } }
     public InGameUIManager inGameUiManager { get { return _inGameUiManager; } }
@@ -194,7 +197,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             else if (!_isChoosingQuestion)
             {
                 PreparingToQuestionTime();
-                _allAnswerBtnList[Random.Range(0, _allAnswerBtnList.Count)].OnClickButton();
+                _allAnswerBtnList[Random.Range(0, _allAnswerBtnList.Count)].AnswerQuestionFalseWhenTimeRunOut();
             }
         }
     }   

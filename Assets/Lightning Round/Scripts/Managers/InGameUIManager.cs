@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 using TMPro;
 using System;
 
@@ -60,6 +61,11 @@ public class InGameUIManager : MonoBehaviour
         }
 
         _scorePanel.SetActive(true);
+    }
+
+    public void BackToMenu()
+    {
+        PhotonNetwork.LeaveRoom();
     }
 
     private void CalculatePlaces()

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Photon.Pun;
 using Photon.Realtime;
 
@@ -65,6 +66,7 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
     {
         Debug.Log("in Lobby");
         _mainLoadingPanel.IncreaseLoadingBar(50);
+        if (LoadingScript.instance.isActivated) LoadingScript.instance.StopLoading();
     }
 
     public override void OnJoinedRoom()
@@ -85,7 +87,8 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-      //  Debug.LogError(returnCode + " " + message);
+        //  Debug.LogError(returnCode + " " + message);
+      //  ErrorScript.instance.StartErrorMsg(message, "MatchFailed");
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
@@ -93,6 +96,16 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         if(Photon.Pun.PhotonNetwork.CurrentRoom.PlayerCount == _maxPlayersInRoom)
         {
             Photon.Pun.PhotonNetwork.LoadLevel(1);
+        }
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        base.OnPlayerLeftRoom(otherPlayer);
+        if(SceneManager.sceneCount == 1)
+        {
+            if (LoadingScript.instance.isActivated) LoadingScript.instance.StartLoading();
+            SceneManager.LoadScene(0);
         }
     }
 
@@ -108,14 +121,22 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         if (!isOffline) Photon.Pun.PhotonNetwork.OfflineMode = true;
         //CreateOfflineRoom();
 
-
+        ErrorScript.instance.StartErrorMsg(cause.ToString(), "Photon");
     }
 
     public override void OnLeftRoom()
     {
         base.OnLeftRoom();
-        PhotonNetwork.ConnectUsingSettings();
+        PhotonNetwork.JoinLobby();
+        if (LoadingScript.instance.isActivated) LoadingScript.instance.StartLoading();
     }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        base.OnJoinRoomFailed(returnCode, message);
+        ErrorScript.instance.StartErrorMsg(message, "MatchFailed");
+    }
+
     #endregion CallBacks
 
 
@@ -180,7 +201,7 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
     public void ExitMatchMaking()
     {
         _randomCountForTryingToFindARoom = 0;
-        if (_searchForRoomCoroutine != null) StopCoroutine(_searchForRoomCoroutine);
+        StopAllCoroutines();
     }
 
     public void ExitCurrentRoom()

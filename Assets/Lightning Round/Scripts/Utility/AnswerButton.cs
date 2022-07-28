@@ -11,6 +11,14 @@ public class AnswerButton : MonoBehaviour
         IsTrueAnswer = isTrue;
     }
 
+    public void AnswerQuestionFalseWhenTimeRunOut()
+    {
+        GameManager.instance.inGameUiManager.questionNumberPanel.OnAnsweredQuestionFalse();
+        GameManager.instance.currentPhotonPlayer.SetIsAnswering(false);
+        GameManager.instance.HideAnswerPanel();
+        GameManager.instance.currentPhotonPlayer.SetISAnsweredQuestion();
+    }
+
     public void OnClickButton()
     {
         if (IsTrueAnswer)

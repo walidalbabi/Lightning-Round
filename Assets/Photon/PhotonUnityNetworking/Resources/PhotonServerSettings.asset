@@ -51,6 +51,7 @@ MonoBehaviour:
   - RPC_StartNewRoundPlayer
   - SetPlayerInfo
   - RPC_SetPlayerAvatar
+  - RPC_UpdateAvatarTimer
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

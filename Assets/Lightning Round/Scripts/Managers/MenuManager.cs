@@ -79,6 +79,7 @@ public class MenuManager : MonoBehaviour
     {
         ClosePrevioucePanel();
         PhotonNetworkScript.instance.ExitCurrentRoom();
+        LoadingScript.instance.StartLoading();
     }
 
     private GameObject FindPanelInPanelList(string name)
