@@ -1,10 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AnswerButton : MonoBehaviour
 {
+
+    [SerializeField] private GameObject _strikeIcon;
+
+    private Button _currentBtn;
+    private bool _isStrike;
+
     public bool IsTrueAnswer;
+
+
+
+    private void OnEnable()
+    {
+        ResetStrikeIfNeeded();
+    }
+
+    private void Awake()
+    {
+        _currentBtn = GetComponent<Button>();
+    }
 
     public void SetIsTrueAnswer(bool isTrue)
     {
@@ -33,5 +52,23 @@ public class AnswerButton : MonoBehaviour
         GameManager.instance.currentPhotonPlayer.SetIsAnswering(false);
         GameManager.instance.HideAnswerPanel();
         GameManager.instance.currentPhotonPlayer.SetISAnsweredQuestion();
+    }
+
+    //Get Called whem player activate his strike ability to remove a answer
+    public void StrikeButton()
+    {
+        _isStrike = true;
+        _strikeIcon.SetActive(true);
+        _currentBtn.interactable = false;
+    }
+
+    private void ResetStrikeIfNeeded()
+    {
+        if (_isStrike)
+        {
+            _isStrike = false;
+            _strikeIcon.SetActive(false);
+            _currentBtn.interactable = true;
+        }
     }
 }

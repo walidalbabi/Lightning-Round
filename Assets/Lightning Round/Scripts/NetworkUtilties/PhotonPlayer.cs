@@ -91,13 +91,11 @@ public class PhotonPlayer : MonoBehaviour
             SetIsReadyToAnswer(true);
             GameManager.instance.DisableBlockPanel();
             GameManager.instance.CheckIFCurrentRoundIsFinished();
-            Debug.Log("true");
         }
         else
         {
             SetIsReadyToAnswer(false);
             GameManager.instance.EnableBlockPanel();
-            Debug.Log("false");
         }
     }
 

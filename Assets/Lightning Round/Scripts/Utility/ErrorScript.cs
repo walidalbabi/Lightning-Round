@@ -34,11 +34,11 @@ public class ErrorScript : MonoBehaviour
 
 
         _canvasGroup = _errorPanel.GetComponent<CanvasGroup>();
-      //  _audioSource = GetComponent<AudioSource>();
+        _audioSource = GetComponent<AudioSource>();
     }
     public void StartErrorMsg(string txtError, string errorType)
     {
-      //  _audioSource.PlayOneShot(_audioSource.clip);
+        _audioSource.PlayOneShot(_audioSource.clip);
         _reconnectTo = errorType;
         _canvasGroup.LeanAlpha(1f, 0.3f);
 
@@ -85,7 +85,7 @@ public class ErrorScript : MonoBehaviour
 
     public void Reconnect()
     {
-        if (_reconnectTo == "photon")
+        if (_reconnectTo == "Photon")
         {
             Photon.Pun.PhotonNetwork.Reconnect();
         }
@@ -95,8 +95,8 @@ public class ErrorScript : MonoBehaviour
         }
         else
         {
-            StopErrorMsg();
+       
         }
-           
+        StopErrorMsg();
     }
 }

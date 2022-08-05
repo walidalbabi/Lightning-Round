@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Photon.Pun;
 using TMPro;
 using System;
@@ -12,6 +13,8 @@ public class InGameUIManager : MonoBehaviour
     [SerializeField] private GameObject _QuestionMenuPanel;
     [SerializeField] private GameObject _AnswerMenuPanel;
     [SerializeField] private GameObject _scorePanel;
+    [SerializeField] private GameObject _nextRoundPanel;
+    [SerializeField] private GameObject _quitGamePanel;
     [SerializeField] private TextMeshProUGUI _questionText;
     [SerializeField] private TextMeshProUGUI _answer_1Text;
     [SerializeField] private TextMeshProUGUI _answer_2Text;
@@ -63,6 +66,26 @@ public class InGameUIManager : MonoBehaviour
         _scorePanel.SetActive(true);
     }
 
+    public void EnableNextRoundPanel()
+    {
+        _nextRoundPanel.SetActive(true);
+    }
+
+    public void DisableNextRoundPanel()
+    {
+        _nextRoundPanel.SetActive(false);
+    }
+
+    public void OnTryingToQuitGame()
+    {
+        _quitGamePanel.SetActive(true);
+    }
+
+    public void BackToGame()
+    {
+        _quitGamePanel.SetActive(false);
+    }
+
     public void BackToMenu()
     {
         PhotonNetwork.LeaveRoom();
@@ -101,6 +124,27 @@ public class InGameUIManager : MonoBehaviour
             if (button.gameObject.name == GameManager.instance.currentSelectedQuestion.trueAnswerIndex.ToString())
                 button.SetIsTrueAnswer(true);
             else button.SetIsTrueAnswer(false);
+        }
+    }
+
+
+    public void OnExtrasTimePressed()
+    {
+        GameManager.instance.ExtraTimeBonus();
+    }
+
+    public void OnStrikePressed()
+    {
+       // UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.gameObject.GetComponent<Button>().interactable = false;
+        UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.SetActive(false);
+        foreach (var button in AnswerBtns)
+        {
+            if (!button.IsTrueAnswer)
+            {
+                button.StrikeButton();
+                return;
+            }
+
         }
     }
 }

@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
 using Photon.Realtime;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
+
 
 public class PhotonNetworkScript : MonoBehaviourPunCallbacks
 {
@@ -18,6 +20,7 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
     //PR
     private int _randomCountForTryingToFindARoom;
     private IEnumerator _searchForRoomCoroutine;
+    private bool _isNormalGame;
 
     //PB
     private MenuManager _menuManager;
@@ -30,11 +33,14 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         else Destroy(gameObject);
 
         DontDestroyOnLoad(this);
+
+  
     }
 
     // Start is called before the first frame update
     void Start()
     {
+        _mainLoadingPanel.gameObject.SetActive(true);
         Photon.Pun.PhotonNetwork.ConnectUsingSettings();
         Photon.Pun.PhotonNetwork.NickName = Random.Range(1,9999).ToString();
     }
@@ -59,13 +65,17 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         Debug.Log("OnConnectedToMaster() was called by PUN.");
         Photon.Pun.PhotonNetwork.AutomaticallySyncScene = true;
         Photon.Pun.PhotonNetwork.JoinLobby();
-        _mainLoadingPanel.IncreaseLoadingBar(50);
+        if (_mainLoadingPanel != null)
+            _mainLoadingPanel.IncreaseLoadingBar(50);
+
+        if (LoadingScript.instance.isActivated) LoadingScript.instance.StopLoading();
     }
 
     public override void OnJoinedLobby()
     {
         Debug.Log("in Lobby");
-        _mainLoadingPanel.IncreaseLoadingBar(50);
+        if (_mainLoadingPanel != null)
+            _mainLoadingPanel.IncreaseLoadingBar(50);
         if (LoadingScript.instance.isActivated) LoadingScript.instance.StopLoading();
     }
 
@@ -102,11 +112,6 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         base.OnPlayerLeftRoom(otherPlayer);
-        if(SceneManager.sceneCount == 1)
-        {
-            if (LoadingScript.instance.isActivated) LoadingScript.instance.StartLoading();
-            SceneManager.LoadScene(0);
-        }
     }
 
     public override void OnCreatedRoom()
@@ -128,7 +133,12 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
     {
         base.OnLeftRoom();
         PhotonNetwork.JoinLobby();
-        if (LoadingScript.instance.isActivated) LoadingScript.instance.StartLoading();
+        if(SceneManager.sceneCount == 1)
+        {
+            if (!LoadingScript.instance.isActivated) LoadingScript.instance.StartLoading();
+            SceneManager.LoadScene(0);
+        }
+        Debug.Log("Left Room");
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
@@ -140,12 +150,13 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
     #endregion CallBacks
 
 
-    public void StartOnlineGame()
+    public void StartOnlineGame(bool isNormal)
     {
-        bool isOffline = Photon.Pun.PhotonNetwork.OfflineMode;
-        if (isOffline) Photon.Pun.PhotonNetwork.OfflineMode = false;
+        //bool isOffline = Photon.Pun.PhotonNetwork.OfflineMode;
+        //if (isOffline) Photon.Pun.PhotonNetwork.OfflineMode = false;
 
-       // _randomCountForTryingToFindARoom = Random.Range(7,25);
+        // _randomCountForTryingToFindARoom = Random.Range(7,25);
+        _isNormalGame = isNormal;
         _randomCountForTryingToFindARoom = 3;
         StartCoroutine(SearchForAvailbleRoomToJoin());
         _searchForRoomCoroutine = SearchForAvailbleRoomToJoin();
@@ -162,7 +173,7 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(1.5f);
         if (_randomCountForTryingToFindARoom > 0 && !PhotonNetwork.InRoom)
         {
-            PhotonNetwork.JoinRandomRoom();
+            JoinRandomMatch(_isNormalGame);
             StartCoroutine(SearchForAvailbleRoomToJoin());
         }
         else
@@ -172,23 +183,48 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         Debug.Log(_randomCountForTryingToFindARoom.ToString());
     }
 
+    private void JoinRandomMatch(bool isNormal)
+    {
+        string sqlLobbyFilter;
+
+        if (isNormal)
+            sqlLobbyFilter = "gm = 'true'";
+        else sqlLobbyFilter = "gm = 'false'";
+
+        Hashtable roomProperties = new Hashtable() { { "gm", isNormal } };
+        PhotonNetwork.JoinRandomRoom(roomProperties, 0);
+    }
+
     private void CreateOnlineRoomAfterFailToJoinOne()
     {
         RoomOptions roomOptions = new RoomOptions();
         roomOptions.IsVisible = true;
         roomOptions.MaxPlayers = _maxPlayersInRoom;
         roomOptions.CleanupCacheOnLeave = false;
+
+        Hashtable roomProperties = new Hashtable() { { "gm", _isNormalGame } };
+        string[] lobbyProperties = { "gm" };
+
+        roomOptions.CustomRoomPropertiesForLobby = lobbyProperties;
+        roomOptions.CustomRoomProperties = roomProperties;
+
         Photon.Pun.PhotonNetwork.JoinOrCreateRoom(Photon.Pun.PhotonNetwork.NickName+Random.Range(0,999), roomOptions , TypedLobby.Default);
     }
 
-    public void HostGame(bool isPublic)
+    public void HostGame(bool isPublic, bool isNormal)
     {
        
         RoomOptions roomOptions = new RoomOptions();
         if (isPublic)
             roomOptions.IsVisible = true;
         else roomOptions.IsVisible = false;
-       
+
+        Hashtable roomProperties = new Hashtable() { { "gm", isNormal } };
+        string[] lobbyProperties = { "gm" };
+
+        roomOptions.CustomRoomPropertiesForLobby = lobbyProperties;
+        roomOptions.CustomRoomProperties = roomProperties;
+
         roomOptions.MaxPlayers = _maxPlayersInRoom;
         Photon.Pun.PhotonNetwork.JoinOrCreateRoom(Photon.Pun.PhotonNetwork.NickName + Random.Range(0, 999), roomOptions, TypedLobby.Default);
     }

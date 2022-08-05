@@ -28,13 +28,17 @@ public class MenuManager : MonoBehaviour
 
     public void RandomMatch()
     {
-        PhotonNetworkScript.instance.StartOnlineGame();
-        ShowPanelByItsName("RandomMatchmaking Panel");
+        ShowPanelByItsName("RandomMatch Panel");
     }
 
-    public void HostGame(bool isPublic)
+    public void HostGamePublic(bool isNormalGame)
     {
-        PhotonNetworkScript.instance.HostGame(isPublic);
+        PhotonNetworkScript.instance.HostGame(true, isNormalGame);
+    }
+
+    public void HostGamePrivate(bool isNormalGame)
+    {
+        PhotonNetworkScript.instance.HostGame(false, isNormalGame);
     }
 
     public void JoinRoom()
@@ -44,6 +48,12 @@ public class MenuManager : MonoBehaviour
         if (roomId != null)
             PhotonNetworkScript.instance.JoinRoomByID(roomId);
         else Debug.LogError("Room ID Is Null");
+    }
+
+    public void StartSerchingForRandomMatch(bool isNormal)
+    {
+        PhotonNetworkScript.instance.StartOnlineGame(isNormal);
+        ShowPanelByItsName("SearchingForMatch Panel");
     }
 
 
@@ -80,6 +90,11 @@ public class MenuManager : MonoBehaviour
         ClosePrevioucePanel();
         PhotonNetworkScript.instance.ExitCurrentRoom();
         LoadingScript.instance.StartLoading();
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 
     private GameObject FindPanelInPanelList(string name)

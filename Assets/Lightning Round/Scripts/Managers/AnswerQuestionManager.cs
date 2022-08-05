@@ -24,6 +24,7 @@ public class AnswerQuestionManager : MonoBehaviourPunCallbacks
 
         if (GameManager.instance.currentGameState != GameState.Playing) return;
 
+        if(PhotonNetwork.CurrentRoom != null)
         if(playersAnsweredQuestion == PhotonNetwork.CurrentRoom.PlayerCount)
         {
             currentAnswerIndex++;

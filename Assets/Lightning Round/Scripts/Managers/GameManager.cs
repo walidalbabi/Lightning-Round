@@ -10,6 +10,7 @@ using TMPro;
 public enum GameState
 {
     Loading,
+    CheckingGameMode,
     Playing,
     GameFinish
 }
@@ -21,8 +22,10 @@ public class GameManager : MonoBehaviourPunCallbacks
     //Inspector Assign
     [SerializeField] private float _maxTimeINQuestion;
     [SerializeField] private float _maxTimeINAnswer;
+    [SerializeField] private double _extraTimeBonusAmount;
     [SerializeField] private Transform _playersTableTransform;
     [SerializeField] private InGameUIManager _inGameUiManager;
+    [SerializeField] private QuestionNumberPanel _questionNumberPanel;
     [SerializeField] private TextMeshProUGUI _timerInQuestionPanel;
     [SerializeField] private TextMeshProUGUI _timerAnswerPanel;
     [SerializeField] private GameObject _blockPanel;
@@ -41,6 +44,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     //PB
     public GameState currentGameState;
+    public bool isNormalGameMode;
     public List<Question> _questionsList_1_Round_1 = new List<Question>();
     public List<Question> _questionsList_2_Round_1 = new List<Question>();
     public List<Question> _questionsList_3_Round_1 = new List<Question>();
@@ -62,6 +66,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public Question currentSelectedQuestion { get { return _currentSelectedQuestion; } }
     public PhotonPlayer currentPhotonPlayer { get { return _currentPhotonPlayer; } }
     public InGameUIManager inGameUiManager { get { return _inGameUiManager; } }
+    public QuestionNumberPanel questionNumberPanel { get {return _questionNumberPanel; }  }
     public int currentRoundIndex { get { return _currentRoundIndex; } }
 
     public List<PhotonPlayer> allPhotonPlayersList { get { return _allPhotonPlayersList; } }
@@ -75,11 +80,26 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void OnEnterState()
     {
-        if (currentGameState == GameState.Playing)
+
+        if (currentGameState == GameState.CheckingGameMode)
+        {
+            if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsValue(true))
+            {
+                isNormalGameMode = true;
+                _questionNumberPanel.SetGameMode(true);
+            }
+            else
+            {
+                isNormalGameMode = false;
+                _questionNumberPanel.SetGameMode(false);
+            }
+        }
+        else if (currentGameState == GameState.Playing)
         {
             _inGameUiManager.DisableLoadingPanel();
             SetUpQuestionsTable();
         }
+
     }
 
     void Awake()
@@ -178,6 +198,11 @@ public class GameManager : MonoBehaviourPunCallbacks
         _timer = Mathf.Clamp(_timer, 0, _currentMaxTime);
     }
 
+
+    public void ExtraTimeBonus()
+    {
+        _serverStartTime -= _extraTimeBonusAmount;
+    }
     private void CheckForTime()
     {
         if (_currentPhotonPlayer != null)
@@ -242,7 +267,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public void AddPhotonPlayerToList(PhotonPlayer component)
     {
         _allPhotonPlayersList.Add(component);
-        if (_allPhotonPlayersList.Count == PhotonNetwork.CurrentRoom.PlayerCount) SetGameState(GameState.Playing);
+        if (_allPhotonPlayersList.Count == PhotonNetwork.CurrentRoom.PlayerCount) SetGameState(GameState.CheckingGameMode);
     }
 
     public void CheckIFCurrentRoundIsFinished()
@@ -252,7 +277,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if(AnswerQuestionManager.instance.currentAnswerIndex == 5)
+        if(AnswerQuestionManager.instance.currentAnswerIndex == _questionNumberPanel.questionsMark.Length)
         {
             if(_currentRoundIndex == 2)
             {
@@ -270,7 +295,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             else if (_currentRoundIndex == 1)
             {
                 //Start Round 2
-                Invoke("StartNextRound", 0.5f);
+                _inGameUiManager.EnableNextRoundPanel();
+                Invoke("StartNextRound", 2.5f);
                 _canSetNextRound = false;
             }
         }
@@ -287,6 +313,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         _currentRoundIndex++;
         AnswerQuestionManager.instance.StartNewRound();
         _inGameUiManager.questionNumberPanel.StartNewRound();
+        _inGameUiManager.DisableNextRoundPanel();
         _currentPhotonPlayer.StartNewRoundPlayer();
         SetUpQuestionsTable();
         _canSetNextRound = true;
