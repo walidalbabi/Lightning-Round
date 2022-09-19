@@ -429,9 +429,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _avatarPrefab: {fileID: 3600278742410975233, guid: 3d757aaf27acbbd47989a9e4b99217c5, type: 3}
+  _totalGameTime: 0
+  startTime: 0
   playerName: 
   playerImage: {fileID: 0}
   answeredQuestionIndex: 0
+  matchData:
+    content:
+      match:
+        mode_type: 
+        room_code: 
+        questions: []
+  answersData:
+    match_id: 
+    match_game_time: 
+    users:
+      user_id: 
+      score: 
+      questions: []
+  matchQuestions: []
+  title: 
 --- !u!114 &6413094584709279735
 MonoBehaviour:
   m_ObjectHideFlags: 0

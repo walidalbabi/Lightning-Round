@@ -8,12 +8,6 @@ public class QuestionTable : MonoBehaviour
     [SerializeField] private string QuestionCategory;
     [SerializeField] private List<QuestionScript> _questions = new List<QuestionScript>();
 
-    private void Awake()
-    {
-   
-    }
-
-
 
     public void SetQuestions()
     {

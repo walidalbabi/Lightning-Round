@@ -15,6 +15,7 @@ public class InGameUIManager : MonoBehaviour
     [SerializeField] private GameObject _scorePanel;
     [SerializeField] private GameObject _nextRoundPanel;
     [SerializeField] private GameObject _quitGamePanel;
+    [SerializeField] private TextMeshProUGUI _questionCreator;
     [SerializeField] private TextMeshProUGUI _questionText;
     [SerializeField] private TextMeshProUGUI _answer_1Text;
     [SerializeField] private TextMeshProUGUI _answer_2Text;
@@ -114,16 +115,19 @@ public class InGameUIManager : MonoBehaviour
 
     private void SetAnswerPanelData()
     {
-        _questionText.text = GameManager.instance.currentSelectedQuestion.questionData;
-        _answer_1Text.text = GameManager.instance.currentSelectedQuestion.answer_1;
-        _answer_2Text.text = GameManager.instance.currentSelectedQuestion.answer_2;
-        _answer_3Text.text = GameManager.instance.currentSelectedQuestion.answer_3;
+        _questionCreator.text = _questionCreator.text + GameManager.instance.currentSelectedQuestion.teacher;
+        _questionText.text = GameManager.instance.currentSelectedQuestion.title;
+        _answer_1Text.text = GameManager.instance.currentSelectedQuestion.answers[0].ToString();
+        _answer_2Text.text = GameManager.instance.currentSelectedQuestion.answers[1].ToString();
+        _answer_3Text.text = GameManager.instance.currentSelectedQuestion.answers[2].ToString();
 
         foreach (var button in AnswerBtns)
         {
-            if (button.gameObject.name == GameManager.instance.currentSelectedQuestion.trueAnswerIndex.ToString())
+            if (button.gameObject.name == GameManager.instance.currentSelectedQuestion.correct_answer.ToString())
                 button.SetIsTrueAnswer(true);
             else button.SetIsTrueAnswer(false);
+
+            button.SetQuestionData(GameManager.instance.currentSelectedQuestion);
         }
     }
 

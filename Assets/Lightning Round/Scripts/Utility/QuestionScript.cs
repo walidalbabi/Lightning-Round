@@ -13,7 +13,7 @@ public class QuestionScript : MonoBehaviour
     private Button _btn;
 
     //PB
-    public Question data;
+    public Questions data;
 
     private void Awake()
     {

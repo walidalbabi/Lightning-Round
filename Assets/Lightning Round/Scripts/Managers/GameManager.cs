@@ -5,8 +5,6 @@ using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 
-
-
 public enum GameState
 {
     Loading,
@@ -31,39 +29,45 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject _blockPanel;
 
     //PR
-    private Question _currentSelectedQuestion;
+    private Questions _currentSelectedQuestion;
     private float _timer;
     private float _currentMaxTime;
     private double _serverStartTime;
     private bool _isChoosingQuestion;
     private PhotonPlayer _currentPhotonPlayer;
     private int _currentRoundIndex = 1;
+    private float _totalGameTime;
     private bool _canSetNextRound = true;
-    
+
     private List<PhotonPlayer> _allPhotonPlayersList = new List<PhotonPlayer>();
 
     //PB
     public GameState currentGameState;
     public bool isNormalGameMode;
-    public List<Question> _questionsList_1_Round_1 = new List<Question>();
-    public List<Question> _questionsList_2_Round_1 = new List<Question>();
-    public List<Question> _questionsList_3_Round_1 = new List<Question>();
-    public List<Question> _questionsList_1_Round_2 = new List<Question>();
-    public List<Question> _questionsList_2_Round_2 = new List<Question>();
-    public List<Question> _questionsList_3_Round_2 = new List<Question>();
+    public List<Questions> _questionsList_1_Round_1 = new List<Questions>();
+    public List<Questions> _questionsList_2_Round_1 = new List<Questions>();
+    public List<Questions> _questionsList_3_Round_1 = new List<Questions>();
+    public List<Questions> _questionsList_1_Round_2 = new List<Questions>();
+    public List<Questions> _questionsList_2_Round_2 = new List<Questions>();
+    public List<Questions> _questionsList_3_Round_2 = new List<Questions>();
 
     public List<QuestionScript> _allQuestionsBtnList = new List<QuestionScript>();
     public List<AnswerButton> _allAnswerBtnList = new List<AnswerButton>();
+    public List<TableTitleSetter> _tableTitles = new List<TableTitleSetter>();
+
+    public float totalGameTime { get { return _totalGameTime; } }
 
 
     public QuestionTable[] _tables = new QuestionTable[3];
+
+    public string title;
 
     //Properties
     public Transform playersTableTransform { get { return _playersTableTransform; } }
     public float timer { get { return _timer; } }
     public float currentMaxTime { get { return _currentMaxTime; } }
     public double serverStartTime { get { return _serverStartTime; } }
-    public Question currentSelectedQuestion { get { return _currentSelectedQuestion; } }
+    public Questions currentSelectedQuestion { get { return _currentSelectedQuestion; } }
     public PhotonPlayer currentPhotonPlayer { get { return _currentPhotonPlayer; } }
     public InGameUIManager inGameUiManager { get { return _inGameUiManager; } }
     public QuestionNumberPanel questionNumberPanel { get {return _questionNumberPanel; }  }
@@ -83,6 +87,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         if (currentGameState == GameState.CheckingGameMode)
         {
+            //Set Game Mode
             if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsValue(true))
             {
                 isNormalGameMode = true;
@@ -98,6 +103,12 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             _inGameUiManager.DisableLoadingPanel();
             SetUpQuestionsTable();
+        }
+        else if (currentGameState == GameState.GameFinish)
+        {
+            _currentPhotonPlayer.answersData.user.user_id = AuthManager.instance.userData.content.user.userId;
+            _currentPhotonPlayer.answersData.user.score = _currentPhotonPlayer.score.ToString();
+            _currentPhotonPlayer.GetTotalTime();
         }
 
     }
@@ -132,7 +143,47 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             table.SetQuestions();
         }
+
+        foreach (var table in _tableTitles)
+        {
+            table.SetTitleCategory();
+        }
     }
+
+    public void TotalGameTimeFormat(float time)
+    {
+        float minutes = Mathf.Floor(time / 60);
+        float seconds = Mathf.RoundToInt(time % 60);
+        string minutesS;
+        string secondsS;
+        if (minutes < 10)
+        {
+            minutesS = "0" + minutes.ToString();
+        }
+        else
+        {
+            minutesS = minutes.ToString();
+        }
+        if (seconds < 10)
+        {
+            secondsS = "0" + Mathf.RoundToInt(seconds).ToString();
+        }
+        else
+        {
+            secondsS = Mathf.RoundToInt(seconds).ToString();
+        }
+        SetAnswerData(minutesS, secondsS);
+    }
+
+    private void SetAnswerData(string minutes, string seconds)
+    {
+        currentPhotonPlayer.answersData.match_id = PhotonNetwork.CurrentRoom.Name;
+        currentPhotonPlayer.answersData.match_game_time = "00:" +minutes+":"+seconds;
+        var jasonDataToSend = JsonUtility.ToJson(currentPhotonPlayer.answersData);
+        Debug.Log(jasonDataToSend);
+        AuthManager.instance.SendAnswers(jasonDataToSend);
+    }
+
 
     public void AddQuestionButtonScriptToList(QuestionScript component)
     {
@@ -144,7 +195,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         _allQuestionsBtnList = new List<QuestionScript>();
     }
 
-    public void ShowAnswerPanel(Question data)
+    public void ShowAnswerPanel(Questions data)
     {
         PreparingToAnswerTime();
         _currentSelectedQuestion = data;
@@ -197,8 +248,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         _timer = _currentMaxTime - ((float)(PhotonNetwork.Time % _serverStartTime));
         _timer = Mathf.Clamp(_timer, 0, _currentMaxTime);
     }
-
-
     public void ExtraTimeBonus()
     {
         _serverStartTime -= _extraTimeBonusAmount;
@@ -282,7 +331,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             if(_currentRoundIndex == 2)
             {
                 //All Round Are Finished
-
+                SetGameState(GameState.GameFinish);
                 //To Stop Players Activities
                 _currentPhotonPlayer.SetIsAnswering(true);
                 _currentPhotonPlayer.SetIsReadyToAnswer(false);

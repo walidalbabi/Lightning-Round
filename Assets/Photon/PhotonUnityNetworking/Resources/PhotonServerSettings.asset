@@ -52,6 +52,13 @@ MonoBehaviour:
   - SetPlayerInfo
   - RPC_SetPlayerAvatar
   - RPC_UpdateAvatarTimer
+  - RPC_SendAllQuetsionToAllPlayers
+  - SetQuestionsData
+  - RPC_SendAllQuetsionToAllPlayers_Title
+  - RPC_SendAllQuetsionToAllPlayers_ParentCategory
+  - RPC_SendAllQuetsionToAllPlayers_SubCategory
+  - RPC_SendAllQuetsionToAllPlayers_Answers
+  - RPC_SendGameTime
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

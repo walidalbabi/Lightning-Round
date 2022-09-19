@@ -24,9 +24,6 @@ public class QuestionNumberPanel : MonoBehaviour
             }
             _questionsMark = new QuestionsMarks[9];
         }
-
-
-        GameManager.instance.SetGameState(GameState.Playing);
     }
 
     public void OnAnsweredQuestionTrue()
