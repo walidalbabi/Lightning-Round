@@ -8,6 +8,7 @@ public class AnswerButton : MonoBehaviour
 {
 
     [SerializeField] private GameObject _strikeIcon;
+    [SerializeField] private GameObject _trueIcon;
     [SerializeField] private TextMeshProUGUI _text;
 
     private Button _currentBtn;
@@ -23,6 +24,7 @@ public class AnswerButton : MonoBehaviour
     private void OnEnable()
     {
         ResetStrikeIfNeeded();
+        ResetTrueIndicator();
     }
 
     private void Awake()
@@ -53,6 +55,34 @@ public class AnswerButton : MonoBehaviour
 
     public void OnClickButton()
     {
+
+        StartCoroutine(SetIndicator(IsTrueAnswer));
+
+       
+    }
+
+
+    public IEnumerator SetIndicator(bool isTrue)
+    {
+        if (isTrue)
+        {
+            SetTrueIndicator();
+        }
+        else
+        {
+            GameManager.instance.FindandSetTheTrueQuestionIndicator();
+            StrikeButton();
+        }
+
+        GameManager.instance.PlaySound(isTrue);
+
+        yield return new WaitForSeconds(GameManager.instance.maxTimeShowIndicator);
+
+        UpdateDataAfterAnswering();
+    }
+
+    private void UpdateDataAfterAnswering()
+    {
         if (IsTrueAnswer)
         {
             GameManager.instance.UpdateScore(int.Parse(GameManager.instance.currentSelectedQuestion.score));
@@ -71,7 +101,6 @@ public class AnswerButton : MonoBehaviour
         GameManager.instance.currentPhotonPlayer.SetISAnsweredQuestion();
     }
 
-
     private void SetAnswerData(string state)
     {
         answerQuestion = new AnswersQuestions();
@@ -89,6 +118,12 @@ public class AnswerButton : MonoBehaviour
         _currentBtn.interactable = false;
     }
 
+    public void SetTrueIndicator()
+    {
+        _trueIcon.SetActive(true);
+        _currentBtn.interactable = false;
+    }
+
     private void ResetStrikeIfNeeded()
     {
         if (_isStrike)
@@ -97,5 +132,11 @@ public class AnswerButton : MonoBehaviour
             _strikeIcon.SetActive(false);
             _currentBtn.interactable = true;
         }
+    }
+
+    public void ResetTrueIndicator()
+    {
+        _trueIcon.SetActive(false);
+        _currentBtn.interactable = true;
     }
 }

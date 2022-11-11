@@ -18,15 +18,25 @@ public class GameManager : MonoBehaviourPunCallbacks
 
 
     //Inspector Assign
+    [Header("Game Settings")]
     [SerializeField] private float _maxTimeINQuestion;
     [SerializeField] private float _maxTimeINAnswer;
+    [SerializeField] private float _maxTimeShowIndicator = 5;
     [SerializeField] private double _extraTimeBonusAmount;
+
+    [Header("References")]
     [SerializeField] private Transform _playersTableTransform;
     [SerializeField] private InGameUIManager _inGameUiManager;
     [SerializeField] private QuestionNumberPanel _questionNumberPanel;
     [SerializeField] private TextMeshProUGUI _timerInQuestionPanel;
     [SerializeField] private TextMeshProUGUI _timerAnswerPanel;
     [SerializeField] private GameObject _blockPanel;
+
+    [Header("Sounds")]
+    [SerializeField] private AudioClip[] _questionAnsweredTrueSound;
+    [SerializeField] private AudioClip[] _questionAnsweredFalseSound;
+
+
 
     //PR
     private Questions _currentSelectedQuestion;
@@ -38,10 +48,12 @@ public class GameManager : MonoBehaviourPunCallbacks
     private int _currentRoundIndex = 1;
     private float _totalGameTime;
     private bool _canSetNextRound = true;
+    private AudioSource _audioSourcer;
 
     private List<PhotonPlayer> _allPhotonPlayersList = new List<PhotonPlayer>();
 
     //PB
+    [Header("--------------------------------------------Data-----------------------------------------------")]
     public GameState currentGameState;
     public bool isNormalGameMode;
     public List<Questions> _questionsList_1_Round_1 = new List<Questions>();
@@ -57,7 +69,6 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public float totalGameTime { get { return _totalGameTime; } }
 
-
     public QuestionTable[] _tables = new QuestionTable[3];
 
     public string title;
@@ -65,6 +76,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     //Properties
     public Transform playersTableTransform { get { return _playersTableTransform; } }
     public float timer { get { return _timer; } }
+    public float maxTimeShowIndicator { get { return _maxTimeShowIndicator; } }
     public float currentMaxTime { get { return _currentMaxTime; } }
     public double serverStartTime { get { return _serverStartTime; } }
     public Questions currentSelectedQuestion { get { return _currentSelectedQuestion; } }
@@ -117,6 +129,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         if (instance == null) instance = this;
         else Destroy(gameObject);
+
+        _audioSourcer = GetComponent<AudioSource>();
     }
 
     private void Start()
@@ -368,6 +382,14 @@ public class GameManager : MonoBehaviourPunCallbacks
         _canSetNextRound = true;
     }
 
+    public void FindandSetTheTrueQuestionIndicator()
+    {
+        foreach (var answer in _allAnswerBtnList)
+        {
+            if (answer.IsTrueAnswer) answer.SetTrueIndicator();
+        }
+    }
+
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         base.OnPlayerLeftRoom(otherPlayer);
@@ -378,6 +400,22 @@ public class GameManager : MonoBehaviourPunCallbacks
             {
                 player.SetISPlayerLeft();
             }
+        }
+    }
+
+    public void PlaySound(bool istrue)
+    {
+        if (istrue)
+        {
+            int randomValue = Random.Range(0, _questionAnsweredTrueSound.Length);
+            _audioSourcer.clip = _questionAnsweredTrueSound[randomValue];
+            _audioSourcer.Play();
+        }
+        else
+        {
+            int randomValue = Random.Range(0, _questionAnsweredFalseSound.Length);
+            _audioSourcer.clip = _questionAnsweredFalseSound[randomValue];
+            _audioSourcer.Play();
         }
     }
 

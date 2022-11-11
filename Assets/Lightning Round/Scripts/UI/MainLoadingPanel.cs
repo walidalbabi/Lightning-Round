@@ -11,6 +11,8 @@ public class MainLoadingPanel : MonoBehaviour
 
     public void IncreaseLoadingBar(float amount)
     {
+        if (_loadingSlider == null) return;
+
         _loadingSlider.value += amount;
         _silderText.text = _loadingSlider.value.ToString() +"%";
 

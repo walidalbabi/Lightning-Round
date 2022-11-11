@@ -60,6 +60,7 @@ public class MenuManager : MonoBehaviour
     private GameObject _currentSelectedPanel;
     private float _masterVolume;
     private float _musicVolume;
+    private int _selectedNumbOfPlayers = 2;
 
 
     private void Awake()
@@ -159,6 +160,11 @@ public class MenuManager : MonoBehaviour
         else Debug.LogError("Room ID Is Null");
     }
 
+    public void StartSinglePlayerGame(bool isNormalGame)
+    {
+        PhotonNetworkScript.instance.StartOfflineGame(isNormalGame);
+    }
+
     public void JoinTeacherRoom()
     {
         string roomId = _gameIDField.text;
@@ -169,8 +175,13 @@ public class MenuManager : MonoBehaviour
 
     public void StartSerchingForRandomMatch(bool isNormal)
     {
-        PhotonNetworkScript.instance.StartOnlineGame(isNormal);
+        PhotonNetworkScript.instance.StartOnlineGame(isNormal, _selectedNumbOfPlayers);
         ShowPanelByItsName("SearchingForMatch Panel");
+    }
+
+    public void SetNumberOfPlayers(int numb)
+    {
+        _selectedNumbOfPlayers = numb;
     }
 
     public void ShowProfilePanel()

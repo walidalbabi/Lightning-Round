@@ -26,6 +26,10 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
     public bool isNormalGame => _isNormalGame;
 
 
+
+    public byte maxPlayersInRoom => _maxPlayersInRoom;
+
+
     private void Awake()
     {
         if (instance == null) instance = this;
@@ -99,7 +103,14 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        if(Photon.Pun.PhotonNetwork.CurrentRoom.PlayerCount == _maxPlayersInRoom)
+        if (PhotonNetwork.OfflineMode == false)
+        {
+            if (Photon.Pun.PhotonNetwork.CurrentRoom.PlayerCount == _maxPlayersInRoom)
+            {
+                Photon.Pun.PhotonNetwork.LoadLevel(1);
+            }
+        }
+        else if (PhotonNetwork.OfflineMode == true)
         {
             Photon.Pun.PhotonNetwork.LoadLevel(1);
         }
@@ -123,13 +134,24 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        ErrorScript.instance.StartErrorMsg(cause.ToString(), "Photon");
+        if (cause != DisconnectCause.DisconnectByClientLogic)
+            ErrorScript.instance.StartErrorMsg(cause.ToString(), "Photon");
+        else
+        {
+            //Offline Mode
+            bool isOffline = PhotonNetwork.OfflineMode;
+            if (!isOffline) PhotonNetwork.OfflineMode = true;
+            if (_isNormalGame) AuthManager.instance.GetMatch("SLOW", "", true);
+            else if (!_isNormalGame) AuthManager.instance.GetMatch("FAST", "", true);
+        }
     }
 
     public override void OnLeftRoom()
     {
         base.OnLeftRoom();
-        PhotonNetwork.JoinLobby();
+        if (PhotonNetwork.OfflineMode == false) PhotonNetwork.JoinLobby();
+        else StartPhotonAuth();
+
         if(SceneManager.sceneCount == 1)
         {
             if (!LoadingScript.instance.isActivated) LoadingScript.instance.StartLoading();
@@ -159,12 +181,19 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         CreateOnlineRoomAfterFailToJoinOne();
     }
 
-    public void StartOnlineGame(bool isNormal)
+    public void StartOnlineGame(bool isNormal, int numberOfPlayers)
     {
+        _maxPlayersInRoom = (byte)numberOfPlayers;
         _isNormalGame = isNormal;
         _randomCountForTryingToFindARoom = 3;
         StartCoroutine(SearchForAvailbleRoomToJoin());
         _searchForRoomCoroutine = SearchForAvailbleRoomToJoin();
+    }
+
+    public void StartOfflineGame(bool isNormal)
+    {
+        PhotonNetwork.Disconnect();
+        _isNormalGame = isNormal;
     }
 
 
@@ -174,7 +203,7 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(1.5f);
         if (_randomCountForTryingToFindARoom > 0 && !PhotonNetwork.InRoom)
         {
-            JoinRandomMatch(_isNormalGame);
+            JoinRandomMatch(_isNormalGame , _maxPlayersInRoom);
             StartCoroutine(SearchForAvailbleRoomToJoin());
         }
         else
@@ -184,15 +213,18 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         Debug.Log(_randomCountForTryingToFindARoom.ToString());
     }
 
-    private void JoinRandomMatch(bool isNormal)
+    private void JoinRandomMatch(bool isNormal, int numberOfPlayers)
     {
         string sqlLobbyFilter;
+        _maxPlayersInRoom = (byte)numberOfPlayers;
+        //Simple Checker On Max Players, Incase it got overrited by offline mode
+        _maxPlayersInRoom = _maxPlayersInRoom == 1 ? (byte)2 : _maxPlayersInRoom;
 
         if (isNormal)
             sqlLobbyFilter = "gm = 'true'";
         else sqlLobbyFilter = "gm = 'false'";
 
-        Hashtable roomProperties = new Hashtable() { { "gm", isNormal } };
+        Hashtable roomProperties = new Hashtable() { { "gm", isNormal }, { "pl", numberOfPlayers } };
         PhotonNetwork.JoinRandomRoom(roomProperties, 0);
     }
 
@@ -203,14 +235,26 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         else if(!_isNormalGame) AuthManager.instance.GetMatch("FAST","", true);
     }
 
-    public void HostGame(bool isPublic, bool isNormal)
+    public void HostGame(bool isPublic, bool isNormal, int numberOfPlayers)
     {
         RoomOptions roomOptions = new RoomOptions();
-        if (isPublic)
-            roomOptions.IsVisible = true;
-        else roomOptions.IsVisible = false;
+        //Simple Checker On Max Players, Incase it got overrited by offline mode
+        numberOfPlayers = numberOfPlayers == 1 ? (byte)2 : numberOfPlayers;
+        _maxPlayersInRoom = PhotonNetwork.OfflineMode == false ? (byte)numberOfPlayers : (byte)1;
+
+        if(PhotonNetwork.OfflineMode == false)
+        {
+            if (isPublic)
+                roomOptions.IsVisible = true;
+            else roomOptions.IsVisible = false;
+        }
+        else
+        {
+            roomOptions.IsVisible = false;
+        }
+
         roomOptions.MaxPlayers = _maxPlayersInRoom;
-        roomOptions.CleanupCacheOnLeave = false;
+        roomOptions.CleanupCacheOnLeave = PhotonNetwork.OfflineMode == false ? false : true;
 
         Hashtable roomProperties = new Hashtable() { { "gm", isNormal } };
         string[] lobbyProperties = { "gm" };
@@ -218,7 +262,7 @@ public class PhotonNetworkScript : MonoBehaviourPunCallbacks
         roomOptions.CustomRoomPropertiesForLobby = lobbyProperties;
         roomOptions.CustomRoomProperties = roomProperties;
 
-        Photon.Pun.PhotonNetwork.JoinOrCreateRoom(AuthManager.instance.matchData.content.match.room_code, roomOptions, TypedLobby.Default);
+        Photon.Pun.PhotonNetwork.CreateRoom(AuthManager.instance.matchData.content.match.room_code, roomOptions, TypedLobby.Default);
     }
 
     public void JoinRoomByID(string ID)

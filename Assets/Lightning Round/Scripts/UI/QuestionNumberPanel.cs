@@ -28,6 +28,8 @@ public class QuestionNumberPanel : MonoBehaviour
 
     public void OnAnsweredQuestionTrue()
     {
+
+
         _questionsNumb.text = (AnswerQuestionManager.instance.currentAnswerIndex + 1) + "/" + _questionsMark.Length;
         _roundsNumb.text = "Round " +(GameManager.instance.currentRoundIndex) + "/2";
 
@@ -37,12 +39,15 @@ public class QuestionNumberPanel : MonoBehaviour
 
     public void OnAnsweredQuestionFalse()
     {
+
         _questionsNumb.text = (AnswerQuestionManager.instance.currentAnswerIndex + 1) + "/" + _questionsMark.Length;
         _roundsNumb.text = "Round " + (GameManager.instance.currentRoundIndex) + "/2";
 
         if (_questionsMark.Length > 0 && _questionsMark[AnswerQuestionManager.instance.currentAnswerIndex] != null)
             _questionsMark[AnswerQuestionManager.instance.currentAnswerIndex].AnsweredFalse();
     }
+
+
 
     public void StartNewRound()
     {

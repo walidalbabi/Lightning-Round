@@ -364,7 +364,7 @@ public class AuthManager : MonoBehaviour
             Debug.Log("Login Successful");
             var text = www.downloadHandler.text;
             ProcessSuccessfulGetMatch(text);
-            PhotonNetworkScript.instance.HostGame(isPublic, matchData.content.match.mode_type == "FAST" ? false : true);
+            PhotonNetworkScript.instance.HostGame(isPublic, matchData.content.match.mode_type == "FAST" ? false : true, PhotonNetworkScript.instance.maxPlayersInRoom);
             Debug.Log(text);
         }
 
